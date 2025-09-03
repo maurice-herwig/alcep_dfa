@@ -1,4 +1,8 @@
-class SymbolNode:
+from .ForestNode import ForestNode
+from .PackedNode import PackedNode
+
+
+class SymbolNode(ForestNode):
     alphabet = list()
 
     @classmethod
@@ -11,7 +15,7 @@ class SymbolNode:
         """
         cls.alphabet = alphabet
 
-    def __init__(self, state_mapping: dict, queue: set, added: set, seen_symbols: list):
+    def __init__(self, state_mapping: frozenset, queue: frozenset, added: frozenset, seen_symbols: list):
         """
         Initialize a SymbolNode instance.
 
@@ -24,3 +28,14 @@ class SymbolNode:
         self.queue = queue
         self.added = added
         self.seen_symbols = seen_symbols
+        self._children = set()
+
+    def add_family(self, left_node: ForestNode | None, right_node: ForestNode):
+        """
+        Add a child family (left and right child nodes) to the current SymbolNode.
+
+        :param left_node: The left child node.
+        :param right_node: The right child node.
+        :return: None
+        """
+        self._children.add(PackedNode(parent=self, left_node=left_node, right_node=right_node))
