@@ -191,6 +191,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
 
             # Compute on based on the current transition of the to_correct automaton the edit operations
             # such that the only successor for the current state and letter is next_state.
+
+            # TODO überprüfen es kommt nie zum RemoveTransition
             successors = to_correct.get_successors(s=state[1], a=letter)
             if state[0] == TO_CORRECT and successors:
                 [successor_state] = successors
@@ -283,27 +285,34 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # already added before. Then we need to be considered the case that we connect the node to an already
         # created new node for this equivalence class.
         else:
-            # TODO entsprechende edits hinzufügen. Aber am nachfolge knoten ändert sich nichts.
-            # TODO edit knoten connect zu einem bereits hinzugefügten knoten der Äquivalenzklasse.
-            pass
+            all_edit_options.append([AddTransition(source_state=state,
+                                                   symbol=letter,
+                                                   target_state=(MINIMAL_DFA, next_equivalence_class_state))])
 
         # 5. Consider the special case that the next state is the start state of the minimal_dfa.
         # Then if we had added a new start state we need to be considered to connect to this state.
         if next_equivalence_class_state == minimal_dfa_start_state:
             if (MINIMAL_DFA_START, minimal_dfa_start_state) in added:
-                # TODO entsprechende edits hinzufügen. Aber am nachfolge knoten ändert sich nichts.
-                # TODO edit knoten connect zu einem bereits hinzugefügten knoten der Äquivalenzklasse.
-                pass
+                all_edit_options.append([AddTransition(source_state=state,
+                                                       symbol=letter,
+                                                       target_state=(MINIMAL_DFA_START, minimal_dfa_start_state))])
 
+        # Add a new State and connect the current_state to it.
         # Note that case 3. und 4. have the same edit operation sequence that add a new node of this
         # equivalence class.
-
-        # TODO anstatt []  entsprechende edits hinzufügen für den case.
-        all_edit_options.append([])
+        edit_operation = [AddNewState(state=(MINIMAL_DFA_START, next_equivalence_class_state))]
+        if next_equivalence_class_state in minimal_dfa.get_finals():
+            edit_operation.append(MarkStateAsFinal(state=(MINIMAL_DFA_START, next_equivalence_class_state)))
+        edit_operation.append(AddTransition(source_state=state,
+                                            symbol=letter,
+                                            target_state=(MINIMAL_DFA_START, next_equivalence_class_state)))
+        all_edit_options.append(edit_operation)
 
         # Get or create the new node for the current status of the parse process.
         new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), frozenset(next_queue),
                                                       frozenset(next_added), frozenset(seen_symbols)))
+
+        # TODO evenutell für all edits operations noch remove hinzufügen. 
 
         # Add for all possible edit operation sequences a new edit operation node
         # and add as a child of the current node.
