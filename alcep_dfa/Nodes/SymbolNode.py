@@ -39,3 +39,11 @@ class SymbolNode(ForestNode):
         :return: None
         """
         self._children.add(PackedNode(parent=self, left_node=left_node, right_node=right_node))
+
+    def get_params_unfrozen(self) -> tuple:
+        """
+        Get the parameters of the SymbolNode.
+
+        :return: A tuple containing the state mapping, queue, added equivalence classes, and seen symbols.
+        """
+        return dict(self.state_mapping), set(self.queue), set(self.added), list(self.seen_symbols)

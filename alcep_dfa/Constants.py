@@ -1,5 +1,4 @@
 # States
 TO_CORRECT = "to_correct"
 MINIMAL_DFA = "minimal_dfa"
-START = "start"
-
+MINIMAL_DFA_START = "minimal_dfa_start"
