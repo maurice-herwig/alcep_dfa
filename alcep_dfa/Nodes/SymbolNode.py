@@ -3,17 +3,6 @@ from .PackedNode import PackedNode
 
 
 class SymbolNode(ForestNode):
-    alphabet = list()
-
-    @classmethod
-    def set_alphabet(cls, alphabet: list):
-        """
-        Set the alphabet order for all SymbolNode instances.
-
-        :param alphabet: List of symbols representing the alphabet.
-        :return: None
-        """
-        cls.alphabet = alphabet
 
     def __init__(self, state_mapping: frozenset, queue: frozenset, added: frozenset, seen_symbols: list):
         """

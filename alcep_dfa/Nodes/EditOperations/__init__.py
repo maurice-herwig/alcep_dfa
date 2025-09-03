@@ -3,3 +3,8 @@ from .LeaveInitial import *
 from .MarkAsInitial import *
 from .RemoveMarkAsInitial import *
 from .AddNewState import *
+from .LeaveTransition import *
+from .RemoveTransition import *
+from .AddTransition import *
+from .MarkStateAsFinal import *
+from .MarkStateAsNonFinal import *

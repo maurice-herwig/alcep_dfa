@@ -1,5 +1,5 @@
 from wofa import FiniteAutomata
-from alcep_dfa.Nodes import SymbolNode, EditNode
+from alcep_dfa.Nodes import SymbolNode, EditNode, EndNode
 from alcep_dfa.Nodes.EditOperations import *
 from .Constants import *
 from queue import Queue
@@ -37,8 +37,9 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
             if node_tuple[1]:
                 nodes_to_be_consider.put(new_created_node)
             else:
-                # TODO stop node hinzufügen
-                pass
+                # If the queue is empty, add a new EndNode as a child of the new created node.
+                new_end_node = EndNode()
+                new_created_node.add_family(left_node=None, right_node=new_end_node)
 
             return new_created_node
 
@@ -187,8 +188,27 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # 1. Change the current transition such that they lead to an in the automaton to be correct state
         # that is already mapped to the next equivalence class
         for next_state in [q for q, eq_class in state_mapping.items() if eq_class[1] == next_equivalence_class_state]:
-            edit_operations = []
-            # TODO entsprechende edits der transition hinzufügen
+
+            # Compute on based on the current transition of the to_correct automaton the edit operations
+            # such that the only successor for the current state and letter is next_state.
+            successors = to_correct.get_successors(s=state[1], a=letter)
+            if state[0] == TO_CORRECT and successors:
+                [successor_state] = successors
+
+                # Leave the transition unchanged
+                if next_state == successor_state:
+                    edit_operations = [LeaveTransition(source_state=state, symbol=letter,
+                                                       target_state=(TO_CORRECT, next_state))]
+                else:
+                    # Remove transition and add new transition
+                    edit_operations = [RemoveTransition(source_state=state, symbol=letter,
+                                                        target_state=(TO_CORRECT, successor_state)),
+                                       AddTransition(source_state=state, symbol=letter,
+                                                     target_state=(TO_CORRECT, next_state))]
+            else:
+                # Add only a new transition
+                edit_operations = [AddTransition(source_state=state, symbol=letter,
+                                                 target_state=(TO_CORRECT, next_state))]
 
             # Create the new edit operation node and the get or create the new node.
             new_edit_node = EditNode(edit_operations=edit_operations)
@@ -208,29 +228,42 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
             next_queue = copy.copy(queue)
             next_queue.add((TO_CORRECT, next_state))
 
-            edit_operations = []
-            # TODO entsprechende edits hinzufügen
-            # TODO auch bezüglich akzeptanz
-            if state[0] == TO_CORRECT:
-                pass
+            # Compute on based on the current transition of the to_correct automaton the edit operations
+            # such that the only successor for the current state and letter is next_state.
+            successors = to_correct.get_successors(s=state[1], a=letter)
+            if state[0] == TO_CORRECT and successors:
+                [successor_state] = successors
+
+                # Leave the transition unchanged
+                if next_state == successor_state:
+                    edit_operations = [LeaveTransition(source_state=state, symbol=letter,
+                                                       target_state=(TO_CORRECT, next_state))]
+                else:
+                    # Remove transition and add new transition
+                    edit_operations = [RemoveTransition(source_state=state, symbol=letter,
+                                                        target_state=(TO_CORRECT, successor_state)),
+                                       AddTransition(source_state=state, symbol=letter,
+                                                     target_state=(TO_CORRECT, next_state))]
+            else:
+                # Add only a new transition
+                edit_operations = [AddTransition(source_state=state, symbol=letter,
+                                                 target_state=(TO_CORRECT, next_state))]
+
+            # Add eventually an edit operation for the final property of the next_state.
+            is_eq_class_final = next_equivalence_class_state in minimal_dfa.get_finals()
+            is_next_state_final = next_state in to_correct.get_finals()
+            if is_eq_class_final and not is_next_state_final:
+                edit_operations.append(MarkStateAsFinal(state=(TO_CORRECT, next_state)))
+            elif not is_eq_class_final and is_next_state_final:
+                edit_operations.append(MarkStateAsNonFinal(state=(TO_CORRECT, next_state)))
 
             # Create the new edit operation node and the tuple that defines the new node by the current parameters
             new_edit_node = EditNode(edit_operations=edit_operations)
             new_node_tuple = (frozenset(next_state_mapping.items()), frozenset(next_queue),
                               frozenset(added), frozenset(seen_symbols))
 
-            # Check if the new node already exists, otherwise create it and add it to the nodes_to_be_consider queue
-            if new_node_tuple in node_cache:
-                new_node = node_cache[new_node_tuple]
-            else:
-                new_node = SymbolNode(*new_node_tuple)
-                node_cache[new_node_tuple] = new_node
-
-                if next_queue:
-                    nodes_to_be_consider.put(new_node)
-                else:
-                    # TODO stop node hinzufügen
-                    pass
+            # Get or create the new node for the current status of the parse process.
+            new_node = aux_get_or_create_node(node_tuple=new_node_tuple)
 
             # Add the new node and the edit operation node as children of the current node
             current_node.add_family(left_node=new_node, right_node=new_edit_node)
@@ -251,7 +284,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # created new node for this equivalence class.
         else:
             # TODO entsprechende edits hinzufügen. Aber am nachfolge knoten ändert sich nichts.
-            # TODO edit knoten connect zu einem bereits hinzugefügten knoten der equivalenzklasse.
+            # TODO edit knoten connect zu einem bereits hinzugefügten knoten der Äquivalenzklasse.
             pass
 
         # 5. Consider the special case that the next state is the start state of the minimal_dfa.
@@ -259,7 +292,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         if next_equivalence_class_state == minimal_dfa_start_state:
             if (MINIMAL_DFA_START, minimal_dfa_start_state) in added:
                 # TODO entsprechende edits hinzufügen. Aber am nachfolge knoten ändert sich nichts.
-                # TODO edit knoten connect zu einem bereits hinzugefügten knoten der equivalenzklasse.
+                # TODO edit knoten connect zu einem bereits hinzugefügten knoten der Äquivalenzklasse.
                 pass
 
         # Note that case 3. und 4. have the same edit operation sequence that add a new node of this
