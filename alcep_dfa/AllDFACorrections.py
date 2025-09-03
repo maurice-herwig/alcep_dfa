@@ -104,7 +104,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # Get the next node to be considered
         current_node = nodes_to_be_consider.get()
 
-        # TODO
+        # TODO weg
         print(current_node)
 
         # Get the parameters of the current node
@@ -239,6 +239,60 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
             current_node.add_family(left_node=new_node, right_node=new_edit_node)
 
         # TODO 3., 4., 5. implementieren
+
+        if next_equivalence_class_state == minimal_dfa_start_state:
+            # TODO 5.
+            pass
+        else:
+            next_added = copy.copy(added)
+            next_queue = copy.copy(queue)
+            all_edit_options = []
+
+            # 3. The next state is a new state (represented an equivalence class) for an equivalence class that is not
+            # yet be added before. Then add this node to the added equivalence classes and added to the queue.
+            if next_equivalence_class_state not in added:
+                next_added.add((MINIMAL_DFA, next_equivalence_class_state))
+                next_queue.add((MINIMAL_DFA, next_equivalence_class_state))
+
+            # 4. The next state is a new state (represented an equivalence class) for an equivalence class that is
+            # already added before. Then we need to be considered the case that we connect the node to an already
+            # created new node for this equivalence class.
+            else:
+                # TODO entsprechende edits hinzufügen. Aber am nachfolge knoten ändert sich nichts.
+                # TODO edit knoten connect zu einem bereits hinzugefügten knoten der equivalenzklasse.
+                pass
+
+            # Note that case 3. und 4. have the same edit operation sequence that add a new node of this
+            # equivalence class.
+
+            # TODO anstatt []  entsprechende edits hinzufügen für den case.
+            all_edit_options.append([])
+
+            # Compute the new node and check if the new node already exists, otherwise create it and add it to
+            # the nodes_to_be_consider queue
+            new_node_tuple = (frozenset(state_mapping.items()), frozenset(next_queue),
+                              frozenset(next_added), frozenset(seen_symbols))
+
+            if new_node_tuple in node_cache:
+                new_node = node_cache[new_node_tuple]
+            else:
+                new_node = SymbolNode(*new_node_tuple)
+                node_cache[new_node_tuple] = new_node
+
+                if next_queue:
+                    nodes_to_be_consider.put(new_node)
+                else:
+                    # TODO stop node hinzufügen
+                    pass
+
+            # Add for all possible edit operation sequences a new edit operation node
+            # and add as a child of the current node.
+            for edit_operations in all_edit_options:
+                # Create the new edit operation node
+                new_edit_node = EditNode(edit_operations=edit_operations)
+
+                # Add the new node and the edit operation node as children of the current node
+                current_node.add_family(left_node=new_node, right_node=new_edit_node)
 
     # Return the root node
     return root_node
