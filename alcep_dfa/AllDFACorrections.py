@@ -337,12 +337,12 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # Add a new State and connect the current_state to it.
         # Note that case 3. und 4. have the same edit operation sequence that add a new node of this
         # equivalence class.
-        edit_operation = [AddNewState(state=(MINIMAL_DFA_START, next_equivalence_class_state))]
+        edit_operation = [AddNewState(state=(MINIMAL_DFA, next_equivalence_class_state))]
         if next_equivalence_class_state in minimal_dfa.get_finals():
-            edit_operation.append(MarkStateAsFinal(state=(MINIMAL_DFA_START, next_equivalence_class_state)))
+            edit_operation.append(MarkStateAsFinal(state=(MINIMAL_DFA, next_equivalence_class_state)))
         edit_operation.append(AddTransition(source_state=state,
                                             symbol=letter,
-                                            target_state=(MINIMAL_DFA_START, next_equivalence_class_state)))
+                                            target_state=(MINIMAL_DFA, next_equivalence_class_state)))
         all_edit_options.append(edit_operation)
 
         # Get or create the new node for the current status of the parse process.

@@ -19,7 +19,7 @@ def get_random_correction(root_node: SymbolNode) -> list:
         case SymbolNode():
             right_correction = get_random_correction(child_right_child)
         case EditNode():
-            right_correction = child_right_child.get_edit_operations()
+            right_correction = [child_right_child.get_edit_operations()]
         case EndNode():
             right_correction = []
         case _:

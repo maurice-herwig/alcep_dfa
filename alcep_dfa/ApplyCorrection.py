@@ -5,8 +5,22 @@ from collections import defaultdict
 import copy
 
 
-def apply_correction(to_correct: FiniteAutomata, correction: list[EditOperation]) -> list[FiniteAutomata]:
+def apply_correction(to_correct: FiniteAutomata, correction: list[list[EditOperation]]):
+    """
+    Apply the given correction to the given automata and return all possible resulting automata.
+
+    :param to_correct: The automata to be corrected.
+    :param correction: The correction to be applied.
+    :return: A list of all possible resulting automata.
+    """
+
     def aux_unroll_transitions(trans_options: list) -> list:
+        """
+        Auxiliary function to unroll the transition options into all possible combinations of transitions.
+
+        :param trans_options: The list of transition options to be unrolled.
+        :return: The list of all possible combinations of transitions.
+        """
         if not trans_options:
             return []
 
@@ -29,74 +43,93 @@ def apply_correction(to_correct: FiniteAutomata, correction: list[EditOperation]
                     res.append([current])
             return res
 
-    # Initialize sets and lists to hold states, initials, finals, and transitions for the resulting automata
-    transitions_options = []
+    old_transitions = to_correct.get_transitions()
+    old_states = {q for q, _, p in old_transitions}.union({p for q, _, p in old_transitions})
     states = set()
     initials = set()
     finals = copy.copy(to_correct.get_finals())
-
-    n = to_correct.get_number_of_states()
     eq_class_to_state_mapping = defaultdict(list)
+    transitions_options = []
+
+    # Get the first free state number
+    n = max(old_states) + 1 if old_states else 0
 
     # Iterate over operations in the correction list and add the resulting states and transitions
     # into the above initialised sets/lists
-    for operation in correction:
-        match operation:
-            case AddNewState():
-                _, eq_class = operation.get_state()
-                eq_class_to_state_mapping[eq_class].append(n)
-                states.add(n)
-                n += 1
-            case AddTransition():
-                (source_type, source_eq_class), symbol, (target_type, target_eq_class) = operation.get_transition()
+    for correction_part in correction:
 
-                if source_type == TO_CORRECT:
-                    source_state = source_eq_class
-                else:
-                    source_state = eq_class_to_state_mapping[source_eq_class]
+        this_step_added_eq_class = None
+        this_step_added_state_number = -1
 
-                if target_type == TO_CORRECT:
-                    target_state = target_eq_class
-                else:
-                    target_state = eq_class_to_state_mapping[target_eq_class]
+        for operation in correction_part:
 
-                transitions_options.append((source_state, symbol, target_state))
+            match operation:
+                case AddNewState():
+                    type, eq_class = operation.get_state()
+                    this_step_added_eq_class = (type, eq_class)
+                    eq_class_to_state_mapping[this_step_added_eq_class].append(n)
+                    states.add(n)
+                    this_step_added_state_number = n
+                    n += 1
 
-            case LeaveInitial():
-                _, eq_class = operation.get_state()
-                initials.add(eq_class)
-                states.add(eq_class)
+                case AddTransition():
+                    (source_type, source_eq_class), symbol, (target_type, target_eq_class) = operation.get_transition()
 
-            case LeaveTransition():
-                (_, source_eq_class), symbol, (_, target_eq_class) = operation.get_transition()
-                transitions_options.append((source_eq_class, symbol, target_eq_class))
+                    if source_type == TO_CORRECT:
+                        source_states = [source_eq_class]
+                    else:
+                        source_states = eq_class_to_state_mapping[(source_type, source_eq_class)]
 
-            case MarkAsInitial():
-                state_type, eq_class = operation.get_state()
-                if state_type == TO_CORRECT:
+                    if target_type == TO_CORRECT:
+                        target_state = target_eq_class
+                    else:
+                        if (target_type, target_eq_class) == this_step_added_eq_class:
+                            target_state = this_step_added_state_number
+                        else:
+                            target_state = eq_class_to_state_mapping[(target_type, target_eq_class)]
+
+                    for source_state in source_states:
+                        transitions_options.append((copy.copy(source_state), symbol, copy.copy(target_state)))
+
+                case LeaveInitial():
+                    _, eq_class = operation.get_state()
                     initials.add(eq_class)
-                else:
-                    initials.add(eq_class_to_state_mapping[eq_class][-1])
+                    states.add(eq_class)
 
-            case MarkStateAsFinal():
-                state_type, eq_class = operation.get_state()
-                if state_type == TO_CORRECT:
-                    finals.add(eq_class)
-                else:
-                    finals.add(eq_class_to_state_mapping[eq_class][-1])
+                case LeaveTransition():
+                    (_, source_eq_class), symbol, (_, target_eq_class) = operation.get_transition()
+                    transitions_options.append((source_eq_class, symbol, target_eq_class))
 
-            case MarkStateAsNonFinal():
-                _, eq_class = operation.get_state()
-                initials.remove(eq_class)
+                case MarkAsInitial():
+                    state_type, eq_class = operation.get_state()
+                    if state_type == TO_CORRECT:
+                        initials.add(eq_class)
+                    elif (state_type, eq_class) == this_step_added_eq_class:
+                        initials.add(this_step_added_state_number)
+                    else:
+                        raise Exception("A new state can only set as initial is it was added in the same step")
 
-            case RemoveMarkAsInitial():
-                pass
+                case MarkStateAsFinal():
+                    state_type, eq_class = operation.get_state()
+                    if state_type == TO_CORRECT:
+                        finals.add(eq_class)
+                    elif (state_type, eq_class) == this_step_added_eq_class:
+                        finals.add(this_step_added_state_number)
+                    else:
+                        raise Exception("A new state can only set as final is it was added in the same step")
 
-            case RemoveTransition():
-                pass
+                case MarkStateAsNonFinal():
+                    _, eq_class = operation.get_state()
+                    finals.remove(eq_class)
 
-            case _:
-                raise Exception("Unknown edit operation")
+                case RemoveMarkAsInitial():
+                    pass
+
+                case RemoveTransition():
+                    pass
+
+                case _:
+                    raise Exception("Unknown edit operation")
 
     correct_automatas = []
     # Create all possible combinations of transitions and construct the corresponding automata
