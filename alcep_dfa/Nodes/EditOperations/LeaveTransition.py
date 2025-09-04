@@ -8,5 +8,8 @@ class LeaveTransition(EditOperation):
         self.symbol = symbol
         self.target_state = target_state
 
+    def get_transition(self) -> tuple[tuple, str, tuple]:
+        return self.source_state, self.symbol, self.target_state
+
     def __repr__(self):
         return f"Leave the transition ({self.source_state}, '{self.symbol}', {self.target_state}) unchanged"

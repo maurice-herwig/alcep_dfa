@@ -1,5 +1,5 @@
 from wofa import get_solution, FiniteAutomata
-from alcep_dfa import all_dfa_corrections, get_random_correction
+from alcep_dfa import all_dfa_corrections, get_random_correction, apply_correction
 import pprint
 
 if __name__ == '__main__':
@@ -24,4 +24,9 @@ if __name__ == '__main__':
 
     pprint.pprint(correction)
 
-    print(root_node)
+    # Apply the correction to the to correct DFA
+    corrected_automatas = apply_correction(to_correct=to_correct, correction=correction)
+
+    for corrected in corrected_automatas:
+        print(corrected)
+        print(corrected.equivalence_test(other=minimal_dfa))
