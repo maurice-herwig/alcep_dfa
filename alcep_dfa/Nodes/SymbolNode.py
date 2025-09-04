@@ -36,3 +36,11 @@ class SymbolNode(ForestNode):
         :return: A tuple containing the state mapping, queue, added equivalence classes, and seen symbols.
         """
         return dict(self.state_mapping), set(self.queue), set(self.added), list(self.seen_symbols)
+
+    def get_children(self) -> list[PackedNode]:
+        """
+        Get the children of the SymbolNode.
+
+        :return: A list of PackedNode children.
+        """
+        return list(self._children)

@@ -14,3 +14,19 @@ class PackedNode(ForestNode):
         self.left_node = left_node
         self.right_node = right_node
         self.parent = parent
+
+    def get_right_node(self) -> ForestNode:
+        """
+        Get the right child node.
+
+        :return: The right child node.
+        """
+        return self.right_node
+
+    def get_left_node(self) -> ForestNode:
+        """
+        Get the left child node.
+
+        :return: The left child node.
+        """
+        return self.left_node
