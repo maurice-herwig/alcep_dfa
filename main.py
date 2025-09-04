@@ -12,6 +12,7 @@ if __name__ == '__main__':
     # Minimize the DFA
     minimal_dfa.minimize()
 
+    print(minimal_dfa)
     # Define a DFA to be corrected
     to_correct = FiniteAutomata({0}, [(0, 'a', 1), (1, '0', 0), (1, 'a', 2)], {1})
 

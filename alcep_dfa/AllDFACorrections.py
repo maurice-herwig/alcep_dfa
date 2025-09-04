@@ -34,7 +34,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
             node_cache[node_tuple] = new_created_node
 
             # If the queue is not empty, add the new node to the nodes_to_be_consider queue.
-            if node_tuple[1]:
+            if node_tuple[2]:
                 nodes_to_be_consider.put(new_created_node)
             else:
                 # If the queue is empty, add a new EndNode as a child of the new created node.
@@ -77,7 +77,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
     node_cache = {}
 
     # Create a root node of the sppf.
-    root_tuple = (frozenset({}.items()), frozenset(set()), frozenset(set()), frozenset([]))
+    root_tuple = (frozenset({}.items()), (), frozenset(set()), frozenset(set()), frozenset([]))
     root_node = SymbolNode(*root_tuple)
     node_cache[root_tuple] = root_node
 
@@ -110,8 +110,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
 
         # Create a new node for the current status of the parse process
         new_node_tuple = (
-            frozenset({state: (MINIMAL_DFA_START, minimal_dfa_start_state)}.items()), frozenset({(TO_CORRECT, state)}),
-            frozenset(set()), frozenset([]))
+            frozenset({state: (MINIMAL_DFA_START, minimal_dfa_start_state)}.items()), (),
+            frozenset({(TO_CORRECT, state)}), frozenset(set()), frozenset([]))
         new_node = SymbolNode(*new_node_tuple)
         node_cache[new_node_tuple] = new_node
 
@@ -133,7 +133,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
     new_edit_node = EditNode(edit_operations=edit_operations)
 
     # Create a new node for the current status of the parse process
-    new_node_tuple = (frozenset({}.items()), frozenset({(MINIMAL_DFA_START, minimal_dfa_start_state)}),
+    new_node_tuple = (frozenset({}.items()), (), frozenset({(MINIMAL_DFA_START, minimal_dfa_start_state)}),
                       frozenset({(MINIMAL_DFA_START, minimal_dfa_start_state)}), frozenset([]))
     new_node = SymbolNode(*new_node_tuple)
     node_cache[new_node_tuple] = new_node
@@ -153,10 +153,12 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         current_node = nodes_to_be_consider.get()
 
         # Get the parameters of the current node
-        state_mapping, queue, added, seen_symbols = current_node.get_params_unfrozen()
+        state_mapping, state, queue, added, seen_symbols = current_node.get_params_unfrozen()
 
-        # Get the smallest node from the queue
-        state = next(s for s in states_of_both if s in queue)
+        if not state:
+            # Get the smallest node from the queue
+            state = next(s for s in states_of_both if s in queue)
+
 
         # Get the next symbol to be considered
         letter = alphabet[len(seen_symbols)]
@@ -164,9 +166,11 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # Define the queue and the seen_symbols for the next node
         if len(seen_symbols) == len(alphabet) - 1:
             seen_symbols = []
+            next_tuple_state = ()
             queue.remove(state)
         else:
             seen_symbols.append(letter)
+            next_tuple_state = state
 
         # Compute the next equivalence class of the state following the letter transition in the minimal_dfa
         # Therefore, first get the equivalence class of the current state
@@ -182,8 +186,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         if len(next_equivalence_class_state) == 0:
 
             # If there are no successor for this letter crate a new node that skip the letter.
-            new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), frozenset(queue),
-                                                          frozenset(added), frozenset(seen_symbols)))
+            new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), next_tuple_state,
+                                                          frozenset(queue), frozenset(added), frozenset(seen_symbols)))
 
             # If the current state is a state in the to_correct automaton and has a successor for the current letter,
             # then remove this letter.
@@ -247,8 +251,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
 
             # Create the new edit operation node and the get or create the new node.
             new_edit_node = EditNode(edit_operations=edit_operations)
-            new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), frozenset(queue),
-                                                          frozenset(added), frozenset(seen_symbols)))
+            new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), next_tuple_state,
+                                                          frozenset(queue), frozenset(added), frozenset(seen_symbols)))
 
             # Add the new node and the edit operation node as children of the current node
             current_node.add_family(left_node=new_node, right_node=new_edit_node)
@@ -294,7 +298,7 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
 
             # Create the new edit operation node and the tuple that defines the new node by the current parameters
             new_edit_node = EditNode(edit_operations=edit_operations)
-            new_node_tuple = (frozenset(next_state_mapping.items()), frozenset(next_queue),
+            new_node_tuple = (frozenset(next_state_mapping.items()), next_tuple_state, frozenset(next_queue),
                               frozenset(added), frozenset(seen_symbols))
 
             # Get or create the new node for the current status of the parse process.
@@ -342,8 +346,9 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         all_edit_options.append(edit_operation)
 
         # Get or create the new node for the current status of the parse process.
-        new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), frozenset(next_queue),
-                                                      frozenset(next_added), frozenset(seen_symbols)))
+        new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), next_tuple_state,
+                                                      frozenset(next_queue), frozenset(next_added),
+                                                      frozenset(seen_symbols)))
 
         # If the current state is in the to_correct automaton and has a successor for the current letter,
         # then we need to remove this transition for all edit options.

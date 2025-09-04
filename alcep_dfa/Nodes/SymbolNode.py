@@ -4,16 +4,19 @@ from .PackedNode import PackedNode
 
 class SymbolNode(ForestNode):
 
-    def __init__(self, state_mapping: frozenset, queue: frozenset, added: frozenset, seen_symbols: list):
+    def __init__(self, state_mapping: frozenset, current_state: tuple, queue: frozenset, added: frozenset,
+                 seen_symbols: list):
         """
         Initialize a SymbolNode instance.
 
         :param state_mapping: The state mapping dictionary.
+        :param current_state: The current state being processed.
         :param queue: The queue of states to be seen next.
         :param added: The added equivalence classes of new added states.
         :param seen_symbols: The list of symbols seen so far, for this node.
         """
         self.state_mapping = state_mapping
+        self.current_state = current_state
         self.queue = queue
         self.added = added
         self.seen_symbols = seen_symbols
@@ -35,7 +38,7 @@ class SymbolNode(ForestNode):
 
         :return: A tuple containing the state mapping, queue, added equivalence classes, and seen symbols.
         """
-        return dict(self.state_mapping), set(self.queue), set(self.added), list(self.seen_symbols)
+        return dict(self.state_mapping), self.current_state, set(self.queue), set(self.added), list(self.seen_symbols)
 
     def get_children(self) -> list[PackedNode]:
         """
