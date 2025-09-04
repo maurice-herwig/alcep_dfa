@@ -191,9 +191,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
 
             # Compute on based on the current transition of the to_correct automaton the edit operations
             # such that the only successor for the current state and letter is next_state.
-
-            # TODO überprüfen es kommt nie zum RemoveTransition
             successors = to_correct.get_successors(s=state[1], a=letter)
+
             if state[0] == TO_CORRECT and successors:
                 [successor_state] = successors
 
@@ -312,7 +311,15 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), frozenset(next_queue),
                                                       frozenset(next_added), frozenset(seen_symbols)))
 
-        # TODO evenutell für all edits operations noch remove hinzufügen. 
+        # If the current state is in the to_correct automaton and has a successor for the current letter,
+        # then we need to remove this transition for all edit options.
+        if state[0] == TO_CORRECT:
+            successors = to_correct.get_successors(s=state[1], a=letter)
+            if successors:
+                [successor_state] = successors
+                all_edit_options = [[RemoveTransition(source_state=state, symbol=letter,
+                                                      target_state=(TO_CORRECT, successor_state))] + edit_ops
+                                    for edit_ops in all_edit_options]
 
         # Add for all possible edit operation sequences a new edit operation node
         # and add as a child of the current node.

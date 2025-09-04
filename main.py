@@ -12,7 +12,7 @@ if __name__ == '__main__':
     minimal_dfa.minimize()
 
     # Define a DFA to be corrected
-    to_correct = FiniteAutomata({0}, [(0, 'a', 1), (1, 'a', 0)], {1})
+    to_correct = FiniteAutomata({0}, [(0, 'a', 1), (1, '0', 0), (1, 'a', 2)], {1})
 
     # Compute all corrections
     root_node = all_dfa_corrections(to_correct=to_correct, minimal_dfa=minimal_dfa)
