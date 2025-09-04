@@ -87,14 +87,26 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
     """
     Chosen of the initial state steps
     """
+    # Check if the initial state of the minimal_dfa is a final state.
+    is_initial_final = minimal_dfa_start_state in minimal_dfa.get_finals()
+
     # Iterate over all states and mark them as initial state
     for state in range(to_correct.get_number_of_states()):
 
         if state == old_initial_state:
-            new_edit_node = EditNode(edit_operations=[LeaveInitial(state=(TO_CORRECT, state))])
+            edit_operations = [LeaveInitial(state=(TO_CORRECT, state))]
         else:
-            new_edit_node = EditNode(edit_operations=[RemoveMarkAsInitial(state=(TO_CORRECT, old_initial_state)),
-                                                      MarkAsInitial(state=(TO_CORRECT, state))])
+            edit_operations = [RemoveMarkAsInitial(state=(TO_CORRECT, old_initial_state)),
+                               MarkAsInitial(state=(TO_CORRECT, state))]
+
+            # Add eventually an edit operation for the final property of the next_state.
+            is_new_initial_final = state in to_correct.get_finals()
+            if is_initial_final and not is_new_initial_final:
+                edit_operations.append(MarkStateAsFinal(state=(TO_CORRECT, state)))
+            elif not is_initial_final and is_new_initial_final:
+                edit_operations.append(MarkStateAsNonFinal(state=(TO_CORRECT, state)))
+
+        new_edit_node = EditNode(edit_operations=edit_operations)
 
         # Create a new node for the current status of the parse process
         new_node_tuple = (
@@ -110,9 +122,15 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         nodes_to_be_consider.put(new_node)
 
     # Add a new state as the initial state
-    new_edit_node = EditNode(edit_operations=[RemoveMarkAsInitial(state=old_initial_state),
-                                              AddNewState(state=(MINIMAL_DFA_START, minimal_dfa_start_state)),
-                                              MarkAsInitial(state=(MINIMAL_DFA_START, minimal_dfa_start_state))])
+    edit_operations = [RemoveMarkAsInitial(state=old_initial_state),
+                       AddNewState(state=(MINIMAL_DFA_START, minimal_dfa_start_state)),
+                       MarkAsInitial(state=(MINIMAL_DFA_START, minimal_dfa_start_state))]
+
+    # If the initial state of the minimal_dfa is a final state, then add an edit operation
+    if is_initial_final:
+        edit_operations.append(MarkStateAsFinal(state=(MINIMAL_DFA_START, minimal_dfa_start_state)))
+
+    new_edit_node = EditNode(edit_operations=edit_operations)
 
     # Create a new node for the current status of the parse process
     new_node_tuple = (frozenset({}.items()), frozenset({(MINIMAL_DFA_START, minimal_dfa_start_state)}),
@@ -162,13 +180,29 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         # the next symbol and continue with the next node in the queue to_be_considered
         next_equivalence_class_state = minimal_dfa.get_successors(s=equivalence_class_state, a=letter)
         if len(next_equivalence_class_state) == 0:
+
             # If there are no successor for this letter crate a new node that skip the letter.
             new_node = aux_get_or_create_node(node_tuple=(frozenset(state_mapping.items()), frozenset(queue),
                                                           frozenset(added), frozenset(seen_symbols)))
 
-            current_node.add_family(left_node=None, right_node=new_node)
+            # If the current state is a state in the to_correct automaton and has a successor for the current letter,
+            # then remove this letter.
+            if state[0] == TO_CORRECT:
+                successors = to_correct.get_successors(s=state[1], a=letter)
+                if successors:
+                    [successor_state] = successors
+                    edit_node = EditNode(edit_operations=[RemoveTransition(source_state=state, symbol=letter,
+                                                                           target_state=(TO_CORRECT, successor_state))])
+
+                    current_node.add_family(left_node=new_node, right_node=edit_node)
+                else:
+                    current_node.add_family(left_node=None, right_node=new_node)
+            else:
+                current_node.add_family(left_node=None, right_node=new_node)
+
             continue
 
+        # Get the only next equivalence class state
         [next_equivalence_class_state] = next_equivalence_class_state
 
         # Compute for the current status of the parser process (defined by the current node) all possible next states
