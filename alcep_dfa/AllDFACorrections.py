@@ -159,7 +159,6 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
             # Get the smallest node from the queue
             state = next(s for s in states_of_both if s in queue)
 
-
         # Get the next symbol to be considered
         letter = alphabet[len(seen_symbols)]
 
@@ -312,11 +311,13 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         next_queue = copy.copy(queue)
         all_edit_options = []
 
+        next_queue.add((MINIMAL_DFA, next_equivalence_class_state))
+
         # 3. The next state is a new state (represented an equivalence class) for an equivalence class that is not
-        # yet be added before. Then add this node to the added equivalence classes and added to the queue.
+        # yet be added before. Then add this node to the added equivalence classes.
         if (MINIMAL_DFA, next_equivalence_class_state) not in added:
             next_added.add((MINIMAL_DFA, next_equivalence_class_state))
-            next_queue.add((MINIMAL_DFA, next_equivalence_class_state))
+
 
         # 4. The next state is a new state (represented an equivalence class) for an equivalence class that is
         # already added before. Then we need to be considered the case that we connect the node to an already
