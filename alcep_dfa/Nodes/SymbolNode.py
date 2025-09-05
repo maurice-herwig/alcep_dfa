@@ -47,3 +47,6 @@ class SymbolNode(ForestNode):
         :return: A list of PackedNode children.
         """
         return list(self._children)
+
+    def is_intermediate(self) -> bool:
+        return bool(self.seen_symbols)
