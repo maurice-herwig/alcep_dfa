@@ -32,22 +32,28 @@ class MinCorrectionVisitor(Visitor):
         :param node: The PackedNode to visit.
         :return: None
         """
-        if node.left_node is None:
-            node.set_minimal_edits(edits=node.right_node.get_all_minimal_edits(),
-                                   costs=node.right_node.get_minimal_edits_costs())
-        elif node.right_node is None:
-            node.set_minimal_edits(edits=node.left_node.get_all_minimal_edits(),
-                                   costs=node.left_node.get_minimal_edits_costs())
-        else:
-            all_min_edits = []
+        try:
+            if node.left_node is None:
+                node.set_minimal_edits(edits=node.right_node.get_all_minimal_edits(),
+                                       costs=node.right_node.get_minimal_edits_costs())
+            elif node.right_node is None:
+                node.set_minimal_edits(edits=node.left_node.get_all_minimal_edits(),
+                                       costs=node.left_node.get_minimal_edits_costs())
+            else:
+                all_min_edits = []
 
-            for min_edits_left in node.left_node.get_all_minimal_edits():
-                for min_edits_right in node.right_node.get_all_minimal_edits():
-                    all_min_edits.append(min_edits_left + min_edits_right)
+                for min_edits_left in node.left_node.get_all_minimal_edits():
+                    for min_edits_right in node.right_node.get_all_minimal_edits():
+                        all_min_edits.append(min_edits_right + min_edits_left)
 
-            node.set_minimal_edits(edits=all_min_edits,
-                                   costs=node.left_node.get_minimal_edits_costs() +
-                                         node.right_node.get_minimal_edits_costs())
+                node.set_minimal_edits(edits=all_min_edits,
+                                       costs=node.left_node.get_minimal_edits_costs() +
+                                             node.right_node.get_minimal_edits_costs())
+        except:
+            # If the get method raise an exception then the value is not set. This implies that the same node
+            # is also a successor of the current packed node. In addition, no minimal arises from unwind loops.
+            # Therefor if the min edit for a predecessor is not set, then it cannot be lead to minimal correction.
+            pass
 
     def visit_symbol_node_out(self, node: SymbolNode):
         """
@@ -61,7 +67,14 @@ class MinCorrectionVisitor(Visitor):
         first = True
 
         for child in node.get_children():
-            child_costs = child.get_minimal_edits_costs()
+            try:
+                child_costs = child.get_minimal_edits_costs()
+            except:
+                # If the get method raise an exception then the value is not set. This implies that the same node
+                # is also a successor of the current symbol node. In addition, no minimal arises from unwind loops.
+                # Therefor if the min edit for a predecessor is not set, then it cannot be lead to minimal correction.
+                continue
+
             if first or child_costs < min_costs:
                 min_costs = child_costs
                 all_min_edits = child.get_all_minimal_edits()
@@ -69,7 +82,8 @@ class MinCorrectionVisitor(Visitor):
             elif child_costs == min_costs:
                 all_min_edits.extend(child.get_all_minimal_edits())
 
-        node.set_minimal_edits(edits=all_min_edits, costs=min_costs)
+        if not first:
+            node.set_minimal_edits(edits=all_min_edits, costs=min_costs)
 
     def visit_end_node(self, node: EndNode):
         """
@@ -111,4 +125,4 @@ class MinCorrectionVisitor(Visitor):
                 case RemoveTransition():
                     sum_of_costs += self.costs_remove_transition
 
-        node.set_minimal_edits(edits=[node.get_edit_operations()], costs=sum_of_costs)
+        node.set_minimal_edits(edits=[[node.get_edit_operations()]], costs=sum_of_costs)

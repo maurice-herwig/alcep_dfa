@@ -43,7 +43,7 @@ class Visitor:
 
         # We do not use recursion here to walk the Forest due to the limited stack size in python.
         # Therefore, input_stack is essentially our stack.
-        input_stack = deque([(root_node)])
+        input_stack = deque([root_node])
 
         # It is much faster to cache these as locals since they are called
         # many times in large parses.
@@ -66,7 +66,7 @@ class Visitor:
                 input_stack.pop()
                 continue
             except TypeError:
-                ### If the current object is not an iterator, pass through to Token/SymbolNode
+                # If the current object is not an iterator, pass through to Token/SymbolNode
                 pass
             else:
                 if next_node is None:
