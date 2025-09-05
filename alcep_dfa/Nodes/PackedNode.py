@@ -11,6 +11,7 @@ class PackedNode(ForestNode):
         :param left_node: The left child node.
         :param right_node: The right child node.
         """
+        super().__init__()
         self.left_node = left_node
         self.right_node = right_node
         self.parent = parent

@@ -15,6 +15,7 @@ class SymbolNode(ForestNode):
         :param added: The added equivalence classes of new added states.
         :param seen_symbols: The list of symbols seen so far, for this node.
         """
+        super().__init__()
         self.state_mapping = state_mapping
         self.current_state = current_state
         self.queue = queue

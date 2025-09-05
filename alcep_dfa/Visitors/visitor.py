@@ -38,9 +38,6 @@ class Visitor:
         # to recurse into a node that's already on the stack (infinite recursion).
         visiting = set()
 
-        # set of all nodes that have been visited
-        visited = set()
-
         # A list of nodes that are currently being visited. Used to detect cycle.
         path = []
 
@@ -103,7 +100,6 @@ class Visitor:
                 input_stack.pop()
                 path.pop()
                 visiting.remove(current_id)
-                visited.add(current_id)
             else:
                 visiting.add(current_id)
                 path.append(current)

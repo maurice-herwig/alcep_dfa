@@ -7,6 +7,7 @@ class EditNode(ForestNode):
         """
         Initialize an EditNode instance.
         """
+        super().__init__()
         self.edit_operations = edit_operations
 
     def get_edit_operations(self) -> list:
