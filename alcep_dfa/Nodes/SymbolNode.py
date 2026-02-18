@@ -41,7 +41,7 @@ class SymbolNode(ForestNode):
         """
         return dict(self.state_mapping), self.current_state, set(self.queue), set(self.added), list(self.seen_symbols)
 
-    def get_children(self) -> list[PackedNode]:
+    def get_children(self) -> list:
         """
         Get the children of the SymbolNode.
 
@@ -51,3 +51,12 @@ class SymbolNode(ForestNode):
 
     def is_intermediate(self) -> bool:
         return bool(self.seen_symbols)
+
+    def set_children(self, children: set):
+        """
+        Set the children of the SymbolNode.
+
+        :param children: The new children to set.
+        :return: None
+        """
+        self._children = children

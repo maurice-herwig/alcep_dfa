@@ -1,5 +1,6 @@
 from wofa import get_solution, FiniteAutomata
-from alcep_dfa import all_dfa_corrections, get_random_correction, apply_correction, get_all_minimal_corrections, get_minimal_edit_costs
+from alcep_dfa import all_dfa_corrections, get_random_correction, apply_correction, get_all_minimal_corrections, \
+    get_minimal_edit_costs, shrink_to_minimal_edits
 
 if __name__ == '__main__':
     # Get the minimal DFA from exercise "A"
@@ -25,6 +26,13 @@ if __name__ == '__main__':
     # Compute  all minimal corrections
     costs = get_minimal_edit_costs(root_node=root_node)
     print(costs)
+
+    min_sppf_root_node = shrink_to_minimal_edits(root_node=root_node)
+    print("SPPF after shrinking to minimal corrections")
+    min_correction = get_random_correction(root_node=min_sppf_root_node)
+    print(f'A selected random minimal correction {min_correction}')
+
+
     costs, min_corrections = get_all_minimal_corrections(root_node=root_node)
 
     print(f'The minimal correction has cost: {costs}')
