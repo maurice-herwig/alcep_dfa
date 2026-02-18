@@ -14,6 +14,9 @@ class ForestNode:
             raise Exception("Minimal edits costs not computed yet.")
         return self.minimal_edits_costs
 
-    def set_minimal_edits(self, edits, costs):
+    def set_minimal_edits_and_edits_costs(self, edits, costs):
         self.minimal_edits_costs = costs
         self.all_minimal_edits = edits
+
+    def set_minimal_edits_costs(self, costs):
+        self.minimal_edits_costs = costs

@@ -34,11 +34,11 @@ class MinCorrectionVisitor(Visitor):
         """
         try:
             if node.left_node is None:
-                node.set_minimal_edits(edits=node.right_node.get_all_minimal_edits(),
-                                       costs=node.right_node.get_minimal_edits_costs())
+                node.set_minimal_edits_and_edits_costs(edits=node.right_node.get_all_minimal_edits(),
+                                                       costs=node.right_node.get_minimal_edits_costs())
             elif node.right_node is None:
-                node.set_minimal_edits(edits=node.left_node.get_all_minimal_edits(),
-                                       costs=node.left_node.get_minimal_edits_costs())
+                node.set_minimal_edits_and_edits_costs(edits=node.left_node.get_all_minimal_edits(),
+                                                       costs=node.left_node.get_minimal_edits_costs())
             else:
                 all_min_edits = []
 
@@ -46,8 +46,8 @@ class MinCorrectionVisitor(Visitor):
                     for min_edits_right in node.right_node.get_all_minimal_edits():
                         all_min_edits.append(min_edits_right + min_edits_left)
 
-                node.set_minimal_edits(edits=all_min_edits,
-                                       costs=node.left_node.get_minimal_edits_costs() +
+                node.set_minimal_edits_and_edits_costs(edits=all_min_edits,
+                                                       costs=node.left_node.get_minimal_edits_costs() +
                                              node.right_node.get_minimal_edits_costs())
         except:
             # If the get method raise an exception then the value is not set. This implies that the same node
@@ -83,7 +83,7 @@ class MinCorrectionVisitor(Visitor):
                 all_min_edits.extend(child.get_all_minimal_edits())
 
         if not first:
-            node.set_minimal_edits(edits=all_min_edits, costs=min_costs)
+            node.set_minimal_edits_and_edits_costs(edits=all_min_edits, costs=min_costs)
 
     def visit_end_node(self, node: EndNode):
         """
@@ -92,7 +92,7 @@ class MinCorrectionVisitor(Visitor):
         :param node: The EndNode to visit.
         :return: None
         """
-        node.set_minimal_edits(edits=[[]], costs=0)
+        node.set_minimal_edits_and_edits_costs(edits=[[]], costs=0)
 
     def visit_edit_node(self, node: EditNode):
         """
@@ -125,4 +125,4 @@ class MinCorrectionVisitor(Visitor):
                 case RemoveTransition():
                     sum_of_costs += self.costs_remove_transition
 
-        node.set_minimal_edits(edits=[[node.get_edit_operations()]], costs=sum_of_costs)
+        node.set_minimal_edits_and_edits_costs(edits=[[node.get_edit_operations()]], costs=sum_of_costs)
