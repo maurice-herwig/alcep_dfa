@@ -1,9 +1,16 @@
-from alcep_dfa.Nodes import SymbolNode, PackedNode, EditNode, EndNode
-from alcep_dfa.Visitors import MinCostsComputationVisitor, ShrinkToMinimal, GetAllEditsVisitor
+from wofa import FiniteAutomata
 import random
+from collections import deque
+from alcep_dfa.Nodes import SymbolNode, PackedNode, EditNode, EndNode
+from alcep_dfa.Visitors import MinCostsComputationVisitor, ShrinkToMinimal, GetAllEditsVisitor, ShrinkToAllowedMappings
+from alcep_dfa.Constants import MINIMAL_DFA, MINIMAL_DFA_START
 
 
 # TODO in correction klasse auslagern.
+# TODO 1:1 mapping filter hinzufügen
+# TODO to minimal dfas hinzufügen
+# TODO überprüfen ob beide DFAs sind
+
 def get_random_correction(root_node: SymbolNode) -> list:
     """
     Get a random correction from the SPPF rooted at the given root node.
@@ -100,6 +107,7 @@ def shrink_to_minimal_edits(root_node: SymbolNode,
     """
 
     # TODO überprüfen ob minimal bereits berechnet wurde....
+    # TODO falls nicht aktuell auch zurücksetzen ....
 
     # Create a shrink to minimal visitor
     visitor = ShrinkToMinimal(costs_add_new_state=costs_add_new_state,
@@ -133,3 +141,77 @@ def get_all_corrections(root_node: SymbolNode) -> list:
     visitor.visit(root_node=root_node)
 
     return root_node.get_all_edits()
+
+
+def get_number_of_corrections(root_node: SymbolNode) -> int:
+    # TODO
+    pass
+
+
+def shrink_to_corrections_to_minimal_dfas(root_node: SymbolNode):
+    # TODO
+    # TODO funktioniert indem keine zyklen mehr erlaubt werden
+    pass
+
+
+def shrink_to_corrections_with_1_to_1_mapping(root_node: SymbolNode, minimal_dfa: FiniteAutomata,
+                                              to_correct: FiniteAutomata):
+    # TODO parameter als attribute
+    def __compute_allowed_1_to_1_mapping():
+
+        def __aux(start_state, automata, smallest_states_paths):
+            """Auxiliary function to compute the smallest word that leads to each state of the given automata,
+            starting from the start state and using a breadth first search."""
+            queue = deque()
+            queue.append((start_state, ""))
+
+            while queue:
+                current_state, word = queue.popleft()
+
+                if current_state in smallest_states_paths:
+                    continue
+
+                smallest_states_paths[current_state] = word
+
+                for letter in alphabet:
+                    for next_state in automata.get_successors(s=current_state, a=letter):
+                        if next_state not in smallest_states_paths:
+                            queue.append((next_state, word + letter))
+
+        # TODO als variable setzen
+        alphabet = sorted(list(FiniteAutomata.get_alphabet()))
+
+        # Store for each state of the to correct DFA and the minimal DFA the smallest word that leads to this state,
+        # which is computed by a DFS. This is used to compute the allowed 1 to 1 mapping between states of the to
+        # correct DFA and states of the minimal DFA.
+        smallest_states_paths_to_correct = {}
+        smallest_states_paths_minimal_dfa = {}
+        (initial_state_minimal_dfa,) = minimal_dfa.get_initials()
+        (initial_state_to_correct,) = to_correct.get_initials()
+        __aux(start_state=initial_state_to_correct, automata=to_correct,
+              smallest_states_paths=smallest_states_paths_to_correct)
+
+        __aux(start_state=initial_state_minimal_dfa, automata=minimal_dfa,
+              smallest_states_paths=smallest_states_paths_minimal_dfa)
+
+        swapped_stats_path_minimal_dfa = {value: key for key, value in smallest_states_paths_minimal_dfa.items()}
+
+        for state, path in smallest_states_paths_to_correct.items():
+            if path in swapped_stats_path_minimal_dfa:
+                state_minimal_dfa = swapped_stats_path_minimal_dfa[path]
+
+                if state_minimal_dfa == initial_state_minimal_dfa:
+                    allowed_mapping[state] = (MINIMAL_DFA_START, state_minimal_dfa)
+                else:
+                    allowed_mapping[state] = (MINIMAL_DFA, state_minimal_dfa)
+
+        return allowed_mapping
+
+    allowed_mapping = dict()
+    __compute_allowed_1_to_1_mapping()
+
+    print(allowed_mapping)
+
+    visitor = ShrinkToAllowedMappings(allowed_mapping=allowed_mapping)
+
+    visitor.visit(root_node=root_node)
