@@ -15,10 +15,7 @@ class ShrinkToAllowedMappings(Visitor):
         node_state_mapping = dict(node.state_mapping)
 
         is_mapping_allowed = all((node_state_mapping[key] == self.allowed_mapping[key]) for key in
-                                 (node_state_mapping.keys() & self.allowed_mapping.keys())) \
-                             and \
-                             all(node_state_mapping[key] not in self.allowed_mapping.values() for key in
-                                 node_state_mapping.keys() - self.allowed_mapping.keys())
+                                 (node_state_mapping.keys() & self.allowed_mapping.keys()))
 
         node.set_is_allowed_mapping(is_allowed_mapping=is_mapping_allowed)
 

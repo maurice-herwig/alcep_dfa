@@ -1,5 +1,6 @@
 from .ForestNode import ForestNode
 from .PackedNode import PackedNode
+from ..Constants import *
 
 
 class SymbolNode(ForestNode):
@@ -67,3 +68,14 @@ class SymbolNode(ForestNode):
 
     def get_is_allowed_mapping(self) -> bool:
         return self.is_allowed_mapping
+
+    def get_equivalence_class(self):
+
+        if not self.current_state:
+            return None
+
+        if self.current_state[0] == TO_CORRECT:
+            state_mapping = dict(self.state_mapping)
+            return state_mapping[self.current_state[1]][1]
+        else:
+            return self.current_state[1]

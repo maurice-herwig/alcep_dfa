@@ -56,7 +56,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         "The minimal_dfa have a state without outgoing transitions."
 
     # Define an order on the alphabet
-    alphabet = list(FiniteAutomata.get_alphabet())
+    # TODO das mit der Corrections klasse verknüpfen
+    alphabet = sorted(list(FiniteAutomata.get_alphabet()))
 
     # Check that both automata used only alphabet symbols
     assert all(a in alphabet for _, a, _ in to_correct.get_transitions()), \
