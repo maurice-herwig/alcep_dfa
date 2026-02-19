@@ -22,6 +22,7 @@ class MinCostsComputationVisitor(Visitor):
         yield node.left_node
         yield node.right_node
 
+    def visit_symbol_node_in(self, node: SymbolNode):
         return iter(node.get_children())
 
     def visit_packed_node_out(self, node: PackedNode):

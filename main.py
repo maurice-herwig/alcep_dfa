@@ -25,23 +25,17 @@ if __name__ == '__main__':
     root_node = all_dfa_corrections(to_correct=to_correct, minimal_dfa=minimal_dfa)
     print("CSPPF are computed")
 
-
     # TODO anpassen
     shrink_to_corrections_to_minimal_dfas(root_node=root_node)
-
-    #shrink_to_corrections_with_1_to_1_mapping(root_node=root_node, minimal_dfa=minimal_dfa, to_correct=to_correct)
+    shrink_to_corrections_with_1_to_1_mapping(root_node=root_node, minimal_dfa=minimal_dfa, to_correct=to_correct)
 
     # Compute  all minimal corrections
-    #costs = get_minimal_edit_costs(root_node=root_node)
-    #print(costs)
+    costs = get_minimal_edit_costs(root_node=root_node)
+    print(f'Minimal edit costs: {costs}')
 
-    #min_sppf_root_node = shrink_to_minimal_edits(root_node=root_node)
-    #print("SPPF after shrinking to minimal corrections")
-    #min_correction = get_random_correction(root_node=min_sppf_root_node)
-    #print(f'A selected random minimal correction {min_correction}')
+    shrink_to_minimal_edits(root_node=root_node)
 
     min_corrections = get_all_corrections(root_node=root_node)
-
 
     print("minimal corrections")
     for correction in min_corrections:
@@ -49,12 +43,3 @@ if __name__ == '__main__':
 
         for corrected in apply_correction(to_correct=to_correct, correction=correction):
             print(corrected)
-
-    # Get a random correction from the computed SPPF
-    correction = get_random_correction(root_node=root_node)
-
-    print(f'A selected random correction {correction} correct to the following automata(s): ')
-    # Apply the correction to the to correct DFA and
-    # print the corrected automatas and check if they are equivalent to the minimal DFA
-    for corrected in apply_correction(to_correct=to_correct, correction=correction):
-        print(corrected)

@@ -9,7 +9,6 @@ from alcep_dfa.Constants import MINIMAL_DFA, MINIMAL_DFA_START
 
 # TODO in correction klasse auslagern.
 # TODO für 1:1 mapping filter nur auf den ersten buchstaben des Pfade
-# TODO Fix: to minimal dfas hinzufügen
 # TODO überprüfen ob beide DFAs sind
 # TODO Docstrings
 
