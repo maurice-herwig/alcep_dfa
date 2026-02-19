@@ -2,7 +2,8 @@ from wofa import FiniteAutomata
 import random
 from collections import deque
 from alcep_dfa.Nodes import SymbolNode, PackedNode, EditNode, EndNode
-from alcep_dfa.Visitors import MinCostsComputationVisitor, ShrinkToMinimal, GetAllEditsVisitor, ShrinkToAllowedMappings
+from alcep_dfa.Visitors import MinCostsComputationVisitor, ShrinkToMinimal, GetAllEditsVisitor, \
+    ShrinkToAllowedMappings, ShrinkToMinimalDFAs
 from alcep_dfa.Constants import MINIMAL_DFA, MINIMAL_DFA_START
 
 
@@ -161,13 +162,13 @@ def shrink_to_corrections_to_minimal_dfas(root_node: SymbolNode):
         if node.is_intermediate():
             new_seen_eq_classes = seen_eq_classes
 
-
             if last_edit_equivalence_class is None:
                 # Compute the equivalence class of the node
                 eq_class = node.get_equivalence_class()
                 current_eq_class = eq_class
 
                 if eq_class is not None and eq_class in seen_eq_classes:
+                    node.set_contained_in_cor_to_minial_dfa(False)
                     continue
 
                 new_seen_eq_classes = seen_eq_classes.union({eq_class})
@@ -188,6 +189,11 @@ def shrink_to_corrections_to_minimal_dfas(root_node: SymbolNode):
                 if new_tuple not in seen_tuples:
                     seen_tuples.add(new_tuple)
                     queue.append(new_tuple)
+
+    # Shrink the node to only contain corrections that are contained in the minimal DFA
+    visitor = ShrinkToMinimalDFAs()
+
+    visitor.visit(root_node=root_node)
 
 
 def shrink_to_corrections_with_1_to_1_mapping(root_node: SymbolNode, minimal_dfa: FiniteAutomata,

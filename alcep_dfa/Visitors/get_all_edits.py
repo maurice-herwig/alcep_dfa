@@ -20,13 +20,19 @@ class GetAllEditsVisitor(Visitor):
         elif node.right_node is None:
             node.set_all_edits(node.left_node.get_all_edits())
         else:
-            all_edits = []
+            if node.left_node.get_all_edits() and node.right_node.get_all_edits():
+                all_edits = []
+                for edits_left in node.left_node.get_all_edits():
+                    for edits_right in node.right_node.get_all_edits():
+                        all_edits.append(edits_right + edits_left)
 
-            for edits_left in node.left_node.get_all_edits():
-                for edits_right in node.right_node.get_all_edits():
-                    all_edits.append(edits_right + edits_left)
-
-            node.set_all_edits(all_edits)
+                node.set_all_edits(all_edits)
+            elif node.left_node.get_all_edits():
+                node.set_all_edits(node.left_node.get_all_edits())
+            elif node.right_node.get_all_edits():
+                node.set_all_edits(node.right_node.get_all_edits())
+            else:
+                node.set_all_edits([])
 
     def visit_symbol_node_out(self, node: SymbolNode):
         all_edits = []

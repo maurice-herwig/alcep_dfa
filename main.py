@@ -29,20 +29,19 @@ if __name__ == '__main__':
     # TODO anpassen
     shrink_to_corrections_to_minimal_dfas(root_node=root_node)
 
-    shrink_to_corrections_with_1_to_1_mapping(root_node=root_node, minimal_dfa=minimal_dfa, to_correct=to_correct)
+    #shrink_to_corrections_with_1_to_1_mapping(root_node=root_node, minimal_dfa=minimal_dfa, to_correct=to_correct)
 
     # Compute  all minimal corrections
-    costs = get_minimal_edit_costs(root_node=root_node)
-    print(costs)
+    #costs = get_minimal_edit_costs(root_node=root_node)
+    #print(costs)
 
-    min_sppf_root_node = shrink_to_minimal_edits(root_node=root_node)
-    print("SPPF after shrinking to minimal corrections")
-    min_correction = get_random_correction(root_node=min_sppf_root_node)
-    print(f'A selected random minimal correction {min_correction}')
+    #min_sppf_root_node = shrink_to_minimal_edits(root_node=root_node)
+    #print("SPPF after shrinking to minimal corrections")
+    #min_correction = get_random_correction(root_node=min_sppf_root_node)
+    #print(f'A selected random minimal correction {min_correction}')
 
     min_corrections = get_all_corrections(root_node=root_node)
 
-    print(f'The minimal correction has cost: {costs}')
     print("minimal corrections")
     for correction in min_corrections:
         print(f'Correction: {correction} correct to the following automata(s): ')

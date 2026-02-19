@@ -24,6 +24,7 @@ class SymbolNode(ForestNode):
         self.seen_symbols = seen_symbols
         self._children = set()
         self.is_allowed_mapping = None
+        self.contained_in_cor_to_minial_dfa = None
 
     def add_family(self, left_node: ForestNode | None, right_node: ForestNode):
         """
@@ -79,3 +80,9 @@ class SymbolNode(ForestNode):
             return state_mapping[self.current_state[1]][1]
         else:
             return self.current_state[1]
+
+    def get_contained_in_cor_to_minial_dfa(self) -> bool:
+        return self.contained_in_cor_to_minial_dfa
+
+    def set_contained_in_cor_to_minial_dfa(self, contained_in_cor_to_minial_dfa: bool):
+        self.contained_in_cor_to_minial_dfa = contained_in_cor_to_minial_dfa
