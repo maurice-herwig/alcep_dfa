@@ -42,6 +42,7 @@ if __name__ == '__main__':
 
     min_corrections = get_all_corrections(root_node=root_node)
 
+
     print("minimal corrections")
     for correction in min_corrections:
         print(f'Correction: {correction} correct to the following automata(s): ')

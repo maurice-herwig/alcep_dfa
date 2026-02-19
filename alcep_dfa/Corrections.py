@@ -8,8 +8,8 @@ from alcep_dfa.Constants import MINIMAL_DFA, MINIMAL_DFA_START
 
 
 # TODO in correction klasse auslagern.
-# TODO 1:1 mapping filter hinzufügen
-# TODO to minimal dfas hinzufügen
+# TODO für 1:1 mapping filter nur auf den ersten buchstaben des Pfade
+# TODO Fix: to minimal dfas hinzufügen
 # TODO überprüfen ob beide DFAs sind
 # TODO Docstrings
 
@@ -158,13 +158,13 @@ def shrink_to_corrections_to_minimal_dfas(root_node: SymbolNode):
 
     while queue:
         node, seen_eq_classes, last_edit_equivalence_class = queue.popleft()
+        added_eq_classes = {k[1] for k in node.get_params_unfrozen()[3]}
+
+        eq_class = node.get_equivalence_class()
 
         if node.is_intermediate():
-            new_seen_eq_classes = seen_eq_classes
-
             if last_edit_equivalence_class is None:
                 # Compute the equivalence class of the node
-                eq_class = node.get_equivalence_class()
                 current_eq_class = eq_class
 
                 if eq_class is not None and eq_class in seen_eq_classes:
@@ -173,19 +173,20 @@ def shrink_to_corrections_to_minimal_dfas(root_node: SymbolNode):
 
                 new_seen_eq_classes = seen_eq_classes.union({eq_class})
             else:
+                new_seen_eq_classes = seen_eq_classes
                 current_eq_class = last_edit_equivalence_class
         else:
-            new_seen_eq_classes = seen_eq_classes
+            new_seen_eq_classes = seen_eq_classes.union(added_eq_classes)
             current_eq_class = None
 
         for child in node.get_children():
             if child.left_node is not None and type(child.left_node) == SymbolNode:
-                new_tuple = (child.left_node, new_seen_eq_classes, current_eq_class)
+                new_tuple = (child.left_node, frozenset(new_seen_eq_classes), current_eq_class)
                 if new_tuple not in seen_tuples:
                     seen_tuples.add(new_tuple)
                     queue.append(new_tuple)
             if child.right_node is not None and type(child.right_node) == SymbolNode:
-                new_tuple = (child.right_node, new_seen_eq_classes, current_eq_class)
+                new_tuple = (child.right_node, frozenset(new_seen_eq_classes), current_eq_class)
                 if new_tuple not in seen_tuples:
                     seen_tuples.add(new_tuple)
                     queue.append(new_tuple)

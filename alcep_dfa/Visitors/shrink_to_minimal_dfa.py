@@ -44,7 +44,7 @@ class ShrinkToMinimalDFAs(Visitor):
 
     def visit_symbol_node_out(self, node: SymbolNode):
         contained_in = node.get_contained_in_cor_to_minial_dfa()
-        if contained_in is None or contained_in is True:
+        if contained_in:
             new_children = set()
             for child in node.get_children():
                 if child.get_contained_in_cor_to_minial_dfa():
@@ -54,4 +54,3 @@ class ShrinkToMinimalDFAs(Visitor):
                 node.set_children(new_children)
             else:
                 node.set_contained_in_cor_to_minial_dfa(False)
-
