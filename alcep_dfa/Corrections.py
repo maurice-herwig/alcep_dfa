@@ -3,7 +3,7 @@ import random
 from collections import deque
 from alcep_dfa.Nodes import SymbolNode, PackedNode, EditNode, EndNode
 from alcep_dfa.Visitors import MinCostsComputationVisitor, ShrinkToMinimal, GetAllEditsVisitor, \
-    ShrinkToAllowedMappings, ShrinkToMinimalDFAs
+    ShrinkToAllowedMappings, ShrinkToMinimalDFAs, GetNumberOfCorrectionsVisitor
 from alcep_dfa.Constants import MINIMAL_DFA, MINIMAL_DFA_START
 
 
@@ -145,8 +145,20 @@ def get_all_corrections(root_node: SymbolNode) -> list:
 
 
 def get_number_of_corrections(root_node: SymbolNode) -> int:
-    # TODO
-    pass
+    """
+    Get the number of corrections from the SPPF rooted at the given root node.
+
+    :param root_node: The root SymbolNode of the SPPF or a subtree.
+    :return: The number of corrections represented by the SPPF rooted at the given root node.
+    """
+
+    # Create a get number of corrections visitor
+    visitor = GetNumberOfCorrectionsVisitor()
+
+    # Use the visitor to get all corrections from the SPPF.
+    visitor.visit(root_node=root_node)
+
+    return root_node.get_number_of_corrections()
 
 
 def shrink_to_corrections_to_minimal_dfas(root_node: SymbolNode):
@@ -251,8 +263,6 @@ def shrink_to_corrections_with_1_to_1_mapping(root_node: SymbolNode, minimal_dfa
 
     allowed_mapping = dict()
     __compute_allowed_1_to_1_mapping()
-
-    print(allowed_mapping)
 
     visitor = ShrinkToAllowedMappings(allowed_mapping=allowed_mapping)
 

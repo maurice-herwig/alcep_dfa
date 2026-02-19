@@ -1,7 +1,7 @@
 from wofa import get_solution, get_submission, FiniteAutomata
-from alcep_dfa import all_dfa_corrections, get_random_correction, apply_correction, get_all_corrections, \
+from alcep_dfa import all_dfa_corrections, apply_correction, get_all_corrections, \
     get_minimal_edit_costs, shrink_to_minimal_edits, shrink_to_corrections_with_1_to_1_mapping, \
-    shrink_to_corrections_to_minimal_dfas
+    shrink_to_corrections_to_minimal_dfas, get_number_of_corrections
 
 if __name__ == '__main__':
     # Get the minimal DFA from exercise "A"
@@ -27,6 +27,9 @@ if __name__ == '__main__':
 
     # TODO anpassen
     shrink_to_corrections_to_minimal_dfas(root_node=root_node)
+
+    number_of_corrections = get_number_of_corrections(root_node=root_node)
+    print(f'Number of corrections: {number_of_corrections}')
     shrink_to_corrections_with_1_to_1_mapping(root_node=root_node, minimal_dfa=minimal_dfa, to_correct=to_correct)
 
     # Compute  all minimal corrections
