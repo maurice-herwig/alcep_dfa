@@ -22,6 +22,7 @@ class SymbolNode(ForestNode):
         self.added = added
         self.seen_symbols = seen_symbols
         self._children = set()
+        self.is_allowed_mapping = None
 
     def add_family(self, left_node: ForestNode | None, right_node: ForestNode):
         """
@@ -60,3 +61,9 @@ class SymbolNode(ForestNode):
         :return: None
         """
         self._children = children
+
+    def set_is_allowed_mapping(self, is_allowed_mapping: bool):
+        self.is_allowed_mapping = is_allowed_mapping
+
+    def get_is_allowed_mapping(self) -> bool:
+        return self.is_allowed_mapping
