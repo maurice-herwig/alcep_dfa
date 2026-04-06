@@ -15,6 +15,8 @@ class PackedNode(ForestNode):
         self.left_node = left_node
         self.right_node = right_node
         self.parent = parent
+        self.is_allowed_mapping = None
+        self.contained_in_cor_to_minial_dfa = None
 
     def get_right_node(self) -> ForestNode:
         """
@@ -31,3 +33,15 @@ class PackedNode(ForestNode):
         :return: The left child node.
         """
         return self.left_node
+
+    def set_is_allowed_mapping(self, is_allowed_mapping: bool):
+        self.is_allowed_mapping = is_allowed_mapping
+
+    def get_is_allowed_mapping(self) -> bool:
+        return self.is_allowed_mapping
+
+    def get_contained_in_cor_to_minial_dfa(self) -> bool:
+        return self.contained_in_cor_to_minial_dfa
+
+    def set_contained_in_cor_to_minial_dfa(self, contained_in_cor_to_minial_dfa: bool):
+        self.contained_in_cor_to_minial_dfa = contained_in_cor_to_minial_dfa

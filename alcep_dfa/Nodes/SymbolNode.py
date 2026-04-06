@@ -1,5 +1,6 @@
 from .ForestNode import ForestNode
 from .PackedNode import PackedNode
+from ..Constants import *
 
 
 class SymbolNode(ForestNode):
@@ -22,6 +23,8 @@ class SymbolNode(ForestNode):
         self.added = added
         self.seen_symbols = seen_symbols
         self._children = set()
+        self.is_allowed_mapping = None
+        self.contained_in_cor_to_minial_dfa = None
 
     def add_family(self, left_node: ForestNode | None, right_node: ForestNode):
         """
@@ -41,7 +44,7 @@ class SymbolNode(ForestNode):
         """
         return dict(self.state_mapping), self.current_state, set(self.queue), set(self.added), list(self.seen_symbols)
 
-    def get_children(self) -> list[PackedNode]:
+    def get_children(self) -> list:
         """
         Get the children of the SymbolNode.
 
@@ -51,3 +54,35 @@ class SymbolNode(ForestNode):
 
     def is_intermediate(self) -> bool:
         return bool(self.seen_symbols)
+
+    def set_children(self, children: set):
+        """
+        Set the children of the SymbolNode.
+
+        :param children: The new children to set.
+        :return: None
+        """
+        self._children = children
+
+    def set_is_allowed_mapping(self, is_allowed_mapping: bool):
+        self.is_allowed_mapping = is_allowed_mapping
+
+    def get_is_allowed_mapping(self) -> bool:
+        return self.is_allowed_mapping
+
+    def get_equivalence_class(self):
+
+        if not self.current_state:
+            return None
+
+        if self.current_state[0] == TO_CORRECT:
+            state_mapping = dict(self.state_mapping)
+            return state_mapping[self.current_state[1]][1]
+        else:
+            return self.current_state[1]
+
+    def get_contained_in_cor_to_minial_dfa(self) -> bool:
+        return self.contained_in_cor_to_minial_dfa
+
+    def set_contained_in_cor_to_minial_dfa(self, contained_in_cor_to_minial_dfa: bool):
+        self.contained_in_cor_to_minial_dfa = contained_in_cor_to_minial_dfa

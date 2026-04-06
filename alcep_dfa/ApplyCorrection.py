@@ -143,7 +143,9 @@ def apply_correction(to_correct: FiniteAutomata, correction: list[list[EditOpera
         this_initials = initials.intersection(this_states)
         this_finals = finals.intersection(this_states)
 
-        correct_automatas.append(FiniteAutomata(initials=this_initials,
-                                                transitions=this_transitions,
-                                                finals=this_finals))
+        dfa = FiniteAutomata(initials=this_initials,
+                             transitions=this_transitions,
+                             finals=this_finals)
+        dfa.remove_unproductive_states()
+        correct_automatas.append(dfa)
     return correct_automatas

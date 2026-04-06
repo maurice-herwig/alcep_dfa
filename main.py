@@ -1,5 +1,5 @@
-from wofa import get_solution, FiniteAutomata
-from alcep_dfa import all_dfa_corrections, get_random_correction, apply_correction, get_all_minimal_corrections
+from wofa import get_solution, get_submission, FiniteAutomata
+from alcep_dfa import Correction, apply_correction
 
 if __name__ == '__main__':
     # Get the minimal DFA from exercise "A"
@@ -12,7 +12,7 @@ if __name__ == '__main__':
     minimal_dfa.minimize()
 
     # Define a DFA to be corrected
-    to_correct = FiniteAutomata({0}, [(0, 'a', 1), (1, '0', 0), (1, 'a', 2)], {1})
+    to_correct = get_submission("A", "90")  # FiniteAutomata({0}, [(0, 'a', 1), (1, '0', 0), (1, 'a', 2)], {1})
     print("DFA to be correct")
     print(to_correct)
 
@@ -20,24 +20,18 @@ if __name__ == '__main__':
     print(minimal_dfa)
 
     # Compute all corrections
-    root_node = all_dfa_corrections(to_correct=to_correct, minimal_dfa=minimal_dfa)
+    all_corrections = Correction(to_correct=to_correct, minimal_dfa=minimal_dfa)
+    print("CSPPF are computed")
 
-    # Compute  all minimal corrections
-    costs, min_corrections = get_all_minimal_corrections(root_node=root_node)
+    all_corrections.shrink_to_corrections_to_minimal_dfas()
+    number_of_corrections = all_corrections.get_number_of_corrections()
+    print(f'Number of corrections: {number_of_corrections}')
 
-    print(f'The minimal correction has cost: {costs}')
+    min_corrections = all_corrections.get_all_corrections()
+
     print("minimal corrections")
     for correction in min_corrections:
         print(f'Correction: {correction} correct to the following automata(s): ')
 
         for corrected in apply_correction(to_correct=to_correct, correction=correction):
             print(corrected)
-
-    # Get a random correction from the computed SPPF
-    correction = get_random_correction(root_node=root_node)
-
-    print(f'A selected random correction {correction} correct to the following automata(s): ')
-    # Apply the correction to the to correct DFA and
-    # print the corrected automatas and check if they are equivalent to the minimal DFA
-    for corrected in apply_correction(to_correct=to_correct, correction=correction):
-        print(corrected)

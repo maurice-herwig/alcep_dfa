@@ -6,7 +6,7 @@ from queue import Queue
 import copy
 
 
-def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata) -> SymbolNode:
+def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata, alphabet=None) -> SymbolNode:
     """
     Compute a SPPF that represents all possible ways to correct the to_correct DFA into a DFA that is language
     equivalent to the given minimal_dfa.
@@ -17,6 +17,9 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
 
     :return: The root node of the SPPF that represents all possible corrections.
     """
+
+    if alphabet is None:
+        alphabet = sorted(list(FiniteAutomata.get_alphabet()))
 
     def aux_get_or_create_node(node_tuple):
         """
@@ -56,7 +59,8 @@ def all_dfa_corrections(to_correct: FiniteAutomata, minimal_dfa: FiniteAutomata)
         "The minimal_dfa have a state without outgoing transitions."
 
     # Define an order on the alphabet
-    alphabet = list(FiniteAutomata.get_alphabet())
+    if alphabet is None:
+        alphabet = sorted(list(FiniteAutomata.get_alphabet()))
 
     # Check that both automata used only alphabet symbols
     assert all(a in alphabet for _, a, _ in to_correct.get_transitions()), \
