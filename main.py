@@ -1,7 +1,5 @@
 from wofa import get_solution, get_submission, FiniteAutomata
-from alcep_dfa import all_dfa_corrections, apply_correction, get_all_corrections, \
-    get_minimal_edit_costs, shrink_to_minimal_edits, shrink_to_corrections_with_1_to_1_mapping, \
-    shrink_to_corrections_to_minimal_dfas, get_number_of_corrections
+from alcep_dfa import Correction, apply_correction
 
 if __name__ == '__main__':
     # Get the minimal DFA from exercise "A"
@@ -14,31 +12,21 @@ if __name__ == '__main__':
     minimal_dfa.minimize()
 
     # Define a DFA to be corrected
-    to_correct = get_submission("A", "90")  # FiniteAutomata({0}, [(0, 'a', 1), (1, '0', 0), (1, 'a', 2)], {1})
+    to_correct = get_submission("A", "37")
     print("DFA to be correct")
     print(to_correct)
 
     print("Minimal DFA of the target language")
     print(minimal_dfa)
 
-    # Compute all corrections
-    root_node = all_dfa_corrections(to_correct=to_correct, minimal_dfa=minimal_dfa)
+    all_corrections = Correction(to_correct=to_correct, minimal_dfa=minimal_dfa)
     print("CSPPF are computed")
 
-    # TODO anpassen
-    shrink_to_corrections_to_minimal_dfas(root_node=root_node)
-
-    number_of_corrections = get_number_of_corrections(root_node=root_node)
+    all_corrections.shrink_to_minimal_edits()
+    number_of_corrections = all_corrections.get_number_of_corrections()
     print(f'Number of corrections: {number_of_corrections}')
-    shrink_to_corrections_with_1_to_1_mapping(root_node=root_node, minimal_dfa=minimal_dfa, to_correct=to_correct)
 
-    # Compute  all minimal corrections
-    costs = get_minimal_edit_costs(root_node=root_node)
-    print(f'Minimal edit costs: {costs}')
-
-    shrink_to_minimal_edits(root_node=root_node)
-
-    min_corrections = get_all_corrections(root_node=root_node)
+    min_corrections = all_corrections.get_all_corrections()
 
     print("minimal corrections")
     for correction in min_corrections:
