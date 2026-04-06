@@ -12,17 +12,18 @@ if __name__ == '__main__':
     minimal_dfa.minimize()
 
     # Define a DFA to be corrected
-    to_correct = get_submission("A", "37")
+    to_correct = get_submission("A", "90")  # FiniteAutomata({0}, [(0, 'a', 1), (1, '0', 0), (1, 'a', 2)], {1})
     print("DFA to be correct")
     print(to_correct)
 
     print("Minimal DFA of the target language")
     print(minimal_dfa)
 
+    # Compute all corrections
     all_corrections = Correction(to_correct=to_correct, minimal_dfa=minimal_dfa)
     print("CSPPF are computed")
 
-    all_corrections.shrink_to_minimal_edits()
+    all_corrections.shrink_to_corrections_to_minimal_dfas()
     number_of_corrections = all_corrections.get_number_of_corrections()
     print(f'Number of corrections: {number_of_corrections}')
 
