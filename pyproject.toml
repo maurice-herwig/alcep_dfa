@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alcep_dfa"
+version = "0.1.0"
+description = "All Correction Earley Parser DFA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "wofa @ git+https://github.com/maurice-herwig/wofa.git",
+]
+
+[tool.setuptools.packages.find]
+include = ["alcep_dfa*"]
