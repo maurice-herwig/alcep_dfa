@@ -135,6 +135,9 @@ if __name__ == '__main__':
     # Minimize the reference DFA so comparisons and corrections use a canonical target.
     solution.minimize()
 
+    if not solution.is_deterministic():
+        solution = solution.determine()
+
     # Iterate over all submissions for the selected exercise.
     for sub in SubmissionIterator(task=task):
         # Only process submissions that could be parsed successfully.
