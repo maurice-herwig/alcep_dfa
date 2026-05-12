@@ -14,10 +14,11 @@ matplotlib.use("Agg")
 CORRECTION_TIMEOUT_SECONDS = 180
 
 
-def run_correction_worker(to_correct, minimal_dfa, result_queue: Queue) -> None:
+def run_correction_worker(to_correct, solution, result_queue: Queue) -> None:
     # Run the correction computation in a separate process so it can be terminated on timeout.
     try:
-        Correction(to_correct=to_correct, minimal_dfa=minimal_dfa)
+        FiniteAutomata.set_alphabet(solution.calc_and_get_alphabet())
+        Correction(to_correct=to_correct, minimal_dfa=solution)
         result_queue.put(("ok", None))
     except Exception as exc:
         result_queue.put(("error", repr(exc)))
