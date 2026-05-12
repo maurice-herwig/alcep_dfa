@@ -1,4 +1,5 @@
 from collections import defaultdict
+from multiprocessing import Process, Queue
 from pathlib import Path
 from statistics import mean
 from time import perf_counter
@@ -8,6 +9,39 @@ from alcep_dfa import Correction
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use("Agg")
+
+
+CORRECTION_TIMEOUT_SECONDS = 180
+
+
+def run_correction_worker(to_correct, minimal_dfa, result_queue: Queue) -> None:
+    # Run the correction computation in a separate process so it can be terminated on timeout.
+    try:
+        Correction(to_correct=to_correct, minimal_dfa=minimal_dfa)
+        result_queue.put(("ok", None))
+    except Exception as exc:
+        result_queue.put(("error", repr(exc)))
+
+
+def run_correction_with_timeout(to_correct, minimal_dfa, timeout_seconds: int) -> tuple[bool, str | None]:
+    # Start a subprocess for the correction computation and stop it if the timeout is exceeded.
+    result_queue = Queue()
+    process = Process(target=run_correction_worker, args=(to_correct, minimal_dfa, result_queue))
+    process.start()
+    process.join(timeout_seconds)
+
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        return False, "timeout"
+
+    if not result_queue.empty():
+        status, message = result_queue.get()
+        if status == "ok":
+            return True, None
+        return False, message
+
+    return False, "worker terminated without result"
 
 
 
@@ -107,7 +141,7 @@ def create_runtime_tikz_plot(runtime_records: list[tuple[int, float]], output_pa
 
 if __name__ == '__main__':
     # Select the exercise for which submissions should be evaluated.
-    task = 'A'
+    task = 'H'
 
     # Store the runtime of each correction computation for incorrect submissions.
     runtimes = []
@@ -123,6 +157,10 @@ if __name__ == '__main__':
     incorrect_dfa = 0
     # Count incorrect submissions that are not deterministic finite automata.
     incorrect_non_dfa = 0
+    # Count correction computations that were aborted after exceeding the timeout.
+    aborted_corrections = 0
+    # Count correction computations that failed with an exception.
+    failed_corrections = 0
     # Count submissions that could not be parsed into an automaton.
     non_parseable = 0
     # Count how many correction computations have been started.
@@ -165,16 +203,33 @@ if __name__ == '__main__':
                         f"for DFA with {state_count} states..."
                     )
                     start_time = perf_counter()
-                    Correction(to_correct=sub, minimal_dfa=solution)
+                    completed, error_message = run_correction_with_timeout(
+                        to_correct=sub,
+                        minimal_dfa=solution,
+                        timeout_seconds=CORRECTION_TIMEOUT_SECONDS,
+                    )
                     end_time = perf_counter()
                     runtime = end_time - start_time
-                    runtimes.append(runtime)
-                    runtime_records.append((state_count, runtime))
-                    runtimes_by_state_count[state_count].append(runtime)
-                    print(
-                        f"[Correction {correction_index}] States: {state_count} | "
-                        f"Runtime: {format_duration(runtime)}"
-                    )
+                    if completed:
+                        runtimes.append(runtime)
+                        runtime_records.append((state_count, runtime))
+                        runtimes_by_state_count[state_count].append(runtime)
+                        print(
+                            f"[Correction {correction_index}] States: {state_count} | "
+                            f"Runtime: {format_duration(runtime)}"
+                        )
+                    elif error_message == "timeout":
+                        aborted_corrections += 1
+                        print(
+                            f"[Correction {correction_index}] States: {state_count} | "
+                            f"Aborted after {format_duration(runtime)}"
+                        )
+                    else:
+                        failed_corrections += 1
+                        print(
+                            f"[Correction {correction_index}] States: {state_count} | "
+                            f"Failed after {format_duration(runtime)} | {error_message}"
+                        )
                 else:
                     # Count incorrect submissions that are not DFAs.
                     incorrect_non_dfa += 1
@@ -196,6 +251,8 @@ if __name__ == '__main__':
     print(f"  Incorrect:              {incorrect}")
     print(f"  Incorrect DFA:          {incorrect_dfa}")
     print(f"  Incorrect non-DFA:      {incorrect_non_dfa}")
+    print(f"  Aborted corrections:    {aborted_corrections}")
+    print(f"  Failed corrections:     {failed_corrections}")
     print(f"  Not parseable:          {non_parseable}")
     print(f"  Total:                  {total}")
 
@@ -208,6 +265,8 @@ if __name__ == '__main__':
         print(f"  Incorrect:              {incorrect / total:.2%}")
         print(f"  Incorrect DFA:          {incorrect_dfa / total:.2%}")
         print(f"  Incorrect non-DFA:      {incorrect_non_dfa / total:.2%}")
+        print(f"  Aborted corrections:    {aborted_corrections / total:.2%}")
+        print(f"  Failed corrections:     {failed_corrections / total:.2%}")
         print(f"  Not parseable:          {non_parseable / total:.2%}")
 
     # Print summary statistics for the measured correction runtimes.
