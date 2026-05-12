@@ -1,1 +1,2 @@
 git+https://github.com/maurice-herwig/wofa.git
+matplotlib~=3.10.6
